@@ -1,6 +1,10 @@
 ![CI](https://github.com/luiz-fleal/api-analysis-template/actions/workflows/ci.yml/badge.svg)
 
-# Project Name
+# Brewery Data Analysis
+
+This is a personal project to enhance my data analysis skills.
+
+This project consists on an analysis of [Open Brewery DB's](https://www.openbrewerydb.org/) API data and governmental population census data to create a report showing cities with a low density of breweries/hab. Therefore, the data generated can be utilized by companies in the brewery industry to prospect for profitable cities to invest in new facilities.
 
 # Frameworks and Packages
 
