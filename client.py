@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, Self
 
 import httpx
 from tenacity import (
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 SERVER_ERROR_CODES = [500, 502, 503, 504]
 
-# Helper functions for retry
+# helper functions for retry
 def is_retryable_error(exc: BaseException) -> bool:
 	if isinstance(exc, httpx.TransportError):
 		logger.debug("transport error, will retry: %s", exc)
@@ -53,7 +53,13 @@ class APIClient:
 	def __init__(self, base_url: str, timeout: float = 30.0) -> None:
 		self._client = httpx.Client(base_url=base_url, timeout=timeout)
 
-# Get method wrapped with tenacity's retry only on transient errors
+	def __enter__(self) -> Self:
+		return self
+
+	def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+		self._client.close()
+		
+# get method wrapped with tenacity's retry only on transient errors
 	@retry(
 			stop=stop_after_attempt(5),
 			wait=backoff_time,
