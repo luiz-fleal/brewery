@@ -1,14 +1,15 @@
 import httpx
 import pytest
+import respx
 import tenacity
 
 from client import (
+	APIClient,
 	backoff_time,
 	is_retryable_error,
 	retry_exhausted,
 )
-
-BASE_URL = "https://api.example.test"
+from config import BASE_URL, ENDPOINT_PATH
 
 # helper functions for creating mocks
 def make_status_error(status_code: int, headers: dict | None = None) -> httpx.HTTPStatusError:
@@ -81,4 +82,85 @@ def test_log_retry_exhausted_raises_if_no_outcome():
 	retry_state = make_retry_state(5, None)
 
 	with pytest.raises(RuntimeError, match="no outcome recorded"):
-		retry_exhausted(retry_state)
+		retry_exhausted(retry_state) 
+
+# _fetch_page()
+@respx.mock
+def test_fetch_page_happy_path():
+	route = respx.get(f"{BASE_URL}{ENDPOINT_PATH}").mock(
+		return_value=httpx.Response(200, json=[{"id": 1}])
+	)
+
+	with APIClient(BASE_URL) as client:
+		data = client._fetch_page(page=1, country="", page_size=10)
+	assert data == [{"id": 1}]
+	assert route.call_count == 1
+ 
+ 
+@respx.mock
+def test_get_retries_on_503_then_succeeds(monkeypatch):
+	monkeypatch.setattr("time.sleep", lambda *args, **kwargs: None)
+	route = respx.get(f"{BASE_URL}{ENDPOINT_PATH}").mock(
+		side_effect=[
+			httpx.Response(503),
+			httpx.Response(200, json=[]),
+		]
+	)
+
+	with APIClient(BASE_URL) as client:
+		data = client._fetch_page(page=1, country="", page_size=10)
+	assert data ==  []
+	assert route.call_count == 2
+ 
+ 
+@respx.mock
+def test_get_does_not_retry_on_404():
+	route = respx.get(f"{BASE_URL}{ENDPOINT_PATH}").mock(return_value=httpx.Response(404))
+
+	with APIClient(BASE_URL) as client, pytest.raises(httpx.HTTPStatusError):
+		client._fetch_page(page=1, country="", page_size=10)
+	assert route.call_count == 1
+ 
+ 
+@respx.mock
+def test_get_gives_up_after_max_attempts(monkeypatch):
+	monkeypatch.setattr("time.sleep", lambda *args, **kwargs: None)
+	route = respx.get(f"{BASE_URL}{ENDPOINT_PATH}").mock(return_value=httpx.Response(503))
+
+	with APIClient(BASE_URL) as client, pytest.raises(httpx.HTTPStatusError):
+		client._fetch_page(page=1, country="", page_size=10)
+	assert route.call_count == 5
+
+@respx.mock
+def test_fetch_page_raises_on_incorrect_content():
+	route = respx.get(f"{BASE_URL}{ENDPOINT_PATH}").mock(
+		return_value=httpx.Response(200, headers={"content-type": "plain/text"}, json=[{"id": 1}])
+	)
+
+	with APIClient(BASE_URL) as client, pytest.raises(RuntimeError):
+		client._fetch_page(page=1, country="", page_size=10)
+	assert route.call_count == 1
+	 
+# fetch_all()
+@respx.mock
+def test_fetch_all_stops_on_empty_page():
+	respx.get(f"{BASE_URL}{ENDPOINT_PATH}").mock(
+		side_effect=[
+			httpx.Response(200, json=[{"id": 1}, {"id": 2}]),
+			httpx.Response(200, json=[{"id": 3}]),
+			httpx.Response(200, json=[]),
+		]
+	)
+
+	with APIClient(BASE_URL) as client:
+		breweries = list(client.fetch_all(country="United States", page_size=2))
+
+	assert breweries == [[{"id": 1}, {"id": 2}], [{"id": 3}]]
+
+	@respx.mock
+	def test_fetch_all_stops_on_invalid_country():
+		route = respx.get(f"{BASE_URL}{ENDPOINT_PATH}").mock()
+
+		with APIClient(BASE_URL) as client, pytest.raises(ValueError):
+			client.fetch_all(country="US", page_size=10)
+		assert route.call_count == 0
