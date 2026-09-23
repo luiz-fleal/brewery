@@ -16,7 +16,7 @@ wheels = [
 ]
 
 [[package]]
-name = "api-analysis-template"
+name = "brewery"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
