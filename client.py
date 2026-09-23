@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Any, Self
 
@@ -9,6 +10,8 @@ from tenacity import (
 	stop_after_attempt,
 	wait_random_exponential,
 )
+
+from config import ENDPOINT_PATH
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +36,7 @@ def backoff_time(retry_state: RetryCallState) -> float:
 	if outcome is not None and outcome.failed:
 		exc = outcome.exception()
 		if isinstance(exc, httpx.HTTPStatusError):
-			retry_after = exc.response.headers.get("Retry-After")
+			retry_after: float = exc.response.headers.get("Retry-After")
 			if retry_after:
 				logger.info("honoring Retry-After: %ss", retry_after)
 				return float(retry_after)
@@ -70,4 +73,13 @@ class APIClient:
 		response = self._client.get(path, params=params)
 		response.raise_for_status()
 		return response
+
+	def fetch_page(self, country: str, page: int, page_size: int = 50, ) -> Any:
+		response = self._get(ENDPOINT_PATH, params={
+			"per_page": page_size, 
+			"page": page, 
+			"by_country": country
+			})
+		response_json = json.loads(response.content)
+		return response_json
 
