@@ -4,7 +4,39 @@
 
 This is a personal project to enhance my data analysis skills.
 
-This project consists on an analysis of [Open Brewery DB's](https://www.openbrewerydb.org/) API data and governmental population census data to create a report showing cities with a low density of breweries/hab. Therefore, the data generated can be utilized by companies in the brewery industry to prospect for profitable cities to invest in new facilities.
+The repository consists on an analysis of [Open Brewery DB's](https://www.openbrewerydb.org/) API data and governmental population census data to create a report showing cities with a low density of breweries/hab. Therefore, the data generated can be utilized by companies in the brewery industry to prospect for profitable cities to invest in new facilities.
+
+# Cloning and Setup
+
+Prerequisites:
+
+- Python 3.12 or later
+- [uv](https://docs.astral.sh/uv/getting-started/installation/)
+- [US Population Data](https://www.census.gov/data/tables/time-series/demo/popest/2020s-total-cities-and-towns.html)
+
+Clone the repository and install the project dependencies, including the development dependencies:
+
+```bash
+git clone https://github.com/luiz-fleal/brewery.git
+cd brewery
+uv sync --dev
+```
+
+Run the project with:
+
+```bash
+uv run main.py
+```
+
+Run the test suite with:
+
+```bash
+uv run pytest
+```
+
+Get updated US population data from the above link in the Datasets -> United States subsections. It must be a .csv file and the relative file path must be passed as an argument when calling the function, as well as the desired year to analyze. Data for the year 2020 - 2025 is already provided in data/population-census.
+
+# Usage
 
 # Frameworks and Packages
 
