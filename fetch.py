@@ -15,7 +15,7 @@ def _fetch_page(
         params={"per_page": page_size, "page": page, "by_country": country},
     )
     content_type = response.headers.get("content-type")
-    if content_type != "application/json":
+    if "application/json" not in content_type:
         logger.error("incorrect content type received: %s", content_type)
         raise RuntimeError(f"incorrect content type received: {content_type}")
     return response.json()
