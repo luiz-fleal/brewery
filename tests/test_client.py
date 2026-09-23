@@ -11,7 +11,6 @@ from client import (
     retry_exhausted,
 )
 from config import BASE_URL, ENDPOINT_PATH
-from fetch import _fetch_page
 
 
 # helper functions for creating mocks
@@ -106,8 +105,11 @@ def test_get_retries_on_503_then_succeeds(monkeypatch):
         ]
     )
     with APIClient(BASE_URL) as client:
-        data = _fetch_page(client=client, page=1, country="", page_size=10)
-    assert data == []
+        response = client.get(
+            f"{ENDPOINT_PATH}",
+            params={"per_page": 10, "page": 1, "by_country": "United States"},
+        )
+    assert response.json() == []
     assert route.call_count == 2
 
 
@@ -118,7 +120,10 @@ def test_get_does_not_retry_on_404():
     )
 
     with APIClient(BASE_URL) as client, pytest.raises(fetcherror.RequestFailedError):
-        _fetch_page(client=client, page=1, country="", page_size=10)
+        client.get(
+            f"{ENDPOINT_PATH}",
+            params={"per_page": 10, "page": 1, "by_country": "United States"},
+        )
     assert route.call_count == 1
 
 
@@ -130,5 +135,8 @@ def test_get_gives_up_after_max_attempts(monkeypatch):
     )
 
     with APIClient(BASE_URL) as client, pytest.raises(fetcherror.RequestFailedError):
-        _fetch_page(client=client, page=1, country="", page_size=10)
+        client.get(
+            f"{ENDPOINT_PATH}",
+            params={"per_page": 10, "page": 1, "by_country": "United States"},
+        )
     assert route.call_count == 5

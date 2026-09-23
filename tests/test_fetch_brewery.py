@@ -1,4 +1,3 @@
-# _fetch_page()
 import httpx
 import pytest
 import respx
@@ -6,7 +5,7 @@ import respx
 import fetcherror
 from client import APIClient
 from config import BASE_URL, ENDPOINT_PATH
-from fetch import _fetch_page, fetch_all
+from fetch_brewery import _fetch_page, fetch_all
 
 
 @respx.mock
@@ -16,7 +15,7 @@ def test_fetch_page_happy_path():
     )
 
     with APIClient(BASE_URL) as client:
-        data = _fetch_page(client=client, page=1, country="", page_size=10)
+        data = _fetch_page(client=client, page=1, page_size=10)
     assert data == [{"id": 1}]
     assert route.call_count == 1
 
@@ -30,7 +29,7 @@ def test_fetch_page_raises_on_incorrect_content():
     )
 
     with APIClient(BASE_URL) as client, pytest.raises(fetcherror.InvalidResponseError):
-        _fetch_page(client=client, page=1, country="", page_size=10)
+        _fetch_page(client=client, page=1, page_size=10)
     assert route.call_count == 1
 
 
@@ -46,7 +45,7 @@ def test_fetch_all_stops_on_empty_page():
     )
 
     with APIClient(BASE_URL) as client:
-        breweries = list(fetch_all(client=client, country="United States", page_size=2))
+        breweries = list(fetch_all(client=client, page_size=2))
 
     assert breweries == [[{"id": 1}, {"id": 2}], [{"id": 3}]]
 
@@ -55,5 +54,5 @@ def test_fetch_all_stops_on_empty_page():
         route = respx.get(f"{BASE_URL}{ENDPOINT_PATH}").mock()
 
         with APIClient(BASE_URL) as client, pytest.raises(ValueError):
-            fetch_all(client=client, country="US", page_size=10)
+            fetch_all(client=client, page_size=10)
         assert route.call_count == 0

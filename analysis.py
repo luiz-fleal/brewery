@@ -3,7 +3,7 @@ from collections.abc import Iterator
 import polars as pl
 
 
-def create_dataframe(data: Iterator[list[dict]]) -> pl.DataFrame:
+def create_brewery_dataframe(data: Iterator[list[dict]]) -> pl.DataFrame:
     schema = {
         "id": pl.Utf8,
         "name": pl.Utf8,
