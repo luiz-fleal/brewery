@@ -25,3 +25,5 @@ The following frameworks and packages will be used for code development:
 	- Code maintenance and testability
 2. Ruff:
 	- Bug catching and code consistency
+3. Respx:
+	- HTTP transport layer mocking for testing functions that make requests
