@@ -6,6 +6,7 @@ import httpx
 from tenacity import (
 	RetryCallState,
 	retry,
+	retry_if_exception,
 	retry_if_result,
 	stop_after_attempt,
 	wait_random_exponential,
@@ -66,7 +67,7 @@ class APIClient:
 	@retry(
 			stop=stop_after_attempt(5),
 			wait=backoff_time,
-			retry=retry_if_result(is_retryable_error),
+			retry=retry_if_exception(is_retryable_error),
 			retry_error_callback=retry_exhausted,
 			)
 	def _get(self, path: str, params: dict[str, Any] | None = None) -> httpx.Response:
@@ -74,7 +75,7 @@ class APIClient:
 		response.raise_for_status()
 		return response
 
-	def fetch_page(self, country: str, page: int, page_size: int) -> list[dict]:
+	def _fetch_page(self, country: str, page: int, page_size: int) -> list[dict]:
 		response = self._get(ENDPOINT_PATH, params={
 			"per_page": page_size, 
 			"page": page, 
@@ -92,7 +93,7 @@ class APIClient:
 			raise ValueError(f"invalid country inserted: {country}")
 		page: int = 1
 		while True:
-			response = self.fetch_page(country, page, page_size)
+			response = self._fetch_page(country, page, page_size)
 			yield response
 			if not response or len(response) < page_size:
 				break
