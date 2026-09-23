@@ -11,6 +11,7 @@ from client import (
 )
 from config import BASE_URL, ENDPOINT_PATH
 
+
 # helper functions for creating mocks
 def make_status_error(status_code: int, headers: dict | None = None) -> httpx.HTTPStatusError:
 	request = httpx.Request("GET", BASE_URL)
