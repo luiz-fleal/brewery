@@ -3,6 +3,7 @@ import httpx
 import pytest
 import respx
 
+import fetcherror
 from client import APIClient
 from config import BASE_URL, ENDPOINT_PATH
 from fetch import _fetch_page, fetch_all
@@ -28,7 +29,7 @@ def test_fetch_page_raises_on_incorrect_content():
         )
     )
 
-    with APIClient(BASE_URL) as client, pytest.raises(RuntimeError):
+    with APIClient(BASE_URL) as client, pytest.raises(fetcherror.InvalidResponseError):
         _fetch_page(client=client, page=1, country="", page_size=10)
     assert route.call_count == 1
 

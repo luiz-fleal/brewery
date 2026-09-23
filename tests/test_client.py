@@ -3,6 +3,7 @@ import pytest
 import respx
 import tenacity
 
+import fetcherror
 from client import (
     APIClient,
     backoff_time,
@@ -116,7 +117,7 @@ def test_get_does_not_retry_on_404():
         return_value=httpx.Response(404)
     )
 
-    with APIClient(BASE_URL) as client, pytest.raises(httpx.HTTPStatusError):
+    with APIClient(BASE_URL) as client, pytest.raises(fetcherror.RequestFailedError):
         _fetch_page(client=client, page=1, country="", page_size=10)
     assert route.call_count == 1
 
@@ -128,6 +129,6 @@ def test_get_gives_up_after_max_attempts(monkeypatch):
         return_value=httpx.Response(503)
     )
 
-    with APIClient(BASE_URL) as client, pytest.raises(httpx.HTTPStatusError):
+    with APIClient(BASE_URL) as client, pytest.raises(fetcherror.RequestFailedError):
         _fetch_page(client=client, page=1, country="", page_size=10)
     assert route.call_count == 5

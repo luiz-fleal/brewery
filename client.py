@@ -11,6 +11,8 @@ from tenacity import (
     wait_random_exponential,
 )
 
+from fetcherror import RequestFailedError
+
 logger = logging.getLogger(__name__)
 
 SERVER_ERROR_CODES = [500, 502, 503, 504]
@@ -67,7 +69,19 @@ class APIClient:
         retry_error_callback=retry_exhausted,
         before_sleep=before_sleep_log(logger, 30)
     )
-    def get(self, path: str, params: dict[str, Any] | None = None) -> httpx.Response:
+    def _get(self, path: str, params: dict[str, Any] | None = None) -> httpx.Response:
         response = self._client.get(path, params=params)
         response.raise_for_status()
         return response
+
+    def get(self, path: str, params: dict[str, Any] | None = None) -> httpx.Response:
+        try:
+            return self._get(path, params)
+        except httpx.HTTPStatusError as exc:
+            raise RequestFailedError(
+                f"HTTP {exc.response.status_code} from {path}"
+            ) from exc
+        except httpx.HTTPError as exc:
+            raise RequestFailedError(
+                f"{type(exc).__name__} while requesting {path}"
+            ) from exc
