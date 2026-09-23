@@ -17,9 +17,7 @@ def _fetch_page(
     )
     content_type = response.headers.get("content-type")
     if "application/json" not in content_type:
-        raise fetcherror.InvalidResponseError(
-            f"invalid content-type: {content_type}"
-        )
+        raise fetcherror.InvalidResponseError(f"invalid content-type: {content_type}")
     return response.json()
 
 

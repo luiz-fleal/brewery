@@ -18,9 +18,12 @@ logger = logging.getLogger(__name__)
 SERVER_ERROR_CODES = [500, 502, 503, 504]
 WAIT_TIME = wait_random_exponential(max=30)
 
+
 # helper functions for retry
 def is_retryable_error(exc: BaseException) -> bool:
-    if isinstance(exc, (httpx.TimeoutException, httpx.NetworkError, httpx.RemoteProtocolError)):
+    if isinstance(
+        exc, (httpx.TimeoutException, httpx.NetworkError, httpx.RemoteProtocolError)
+    ):
         return True
     if isinstance(exc, httpx.HTTPStatusError):
         if exc.response.status_code == 429:
@@ -67,7 +70,7 @@ class APIClient:
         wait=backoff_time,
         retry=retry_if_exception(is_retryable_error),
         retry_error_callback=retry_exhausted,
-        before_sleep=before_sleep_log(logger, 30)
+        before_sleep=before_sleep_log(logger, 30),
     )
     def _get(self, path: str, params: dict[str, Any] | None = None) -> httpx.Response:
         response = self._client.get(path, params=params)

@@ -10,21 +10,21 @@ from fetcherror import FetchError
 
 logger = logging.getLogger(__name__)
 
+
 def main(args: argparse.Namespace) -> None:
     print(f"starting requests for breweries in {args.country}")
     with APIClient(BASE_URL) as client:
-        data = fetch_all(
-            client=client, 
-            country=args.country, 
-            page_size=args.page_size
-        )
+        data = fetch_all(client=client, country=args.country, page_size=args.page_size)
         df = create_dataframe(data)
     print(df)
 
-def run () -> int:
+
+def run() -> int:
     # arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--country", type=str, choices=AVAILABLE_COUNTRIES, required=True)
+    parser.add_argument(
+        "-c", "--country", type=str, choices=AVAILABLE_COUNTRIES, required=True
+    )
     parser.add_argument("-ps", "--page_size", type=int, default=200)
     args = parser.parse_args()
 
@@ -45,6 +45,7 @@ def run () -> int:
         print(f"error: {e}", file=sys.stderr)
         return 1
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(run())

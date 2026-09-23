@@ -1,4 +1,3 @@
-
 from collections.abc import Iterator
 
 import polars as pl
@@ -21,6 +20,6 @@ async def create_dataframe(data: Iterator[list[dict]]) -> pl.DataFrame:
         "phone": pl.Utf8,
         "website_url": pl.Utf8,
         "state": pl.Utf8,
-        "street": pl.Utf8
+        "street": pl.Utf8,
     }
     return pl.from_dicts([d for batch in data for d in batch], schema=schema)
