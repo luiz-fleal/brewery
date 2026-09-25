@@ -64,7 +64,24 @@ def merge_brewery_and_census_data(
 ) -> pl.DataFrame:
     merged_df = (
         brewery_df.lazy()
-        .join(census_df.lazy(), on=["city", "state_province"], how="left")
+        .group_by(["city", "state_province"])
+        .len("brewery_count")
+        .join(census_df.lazy(), on=["city"], how="inner")
+        .with_columns(
+            (pl.col("population") / pl.col("brewery_count")).alias(
+                "population_per_brewery"
+            )
+        )
+        .select(
+            [
+                "city",
+                "state_province",
+                "brewery_count",
+                "population",
+                "population_per_brewery",
+            ]
+        )
         .collect()
     )
+    merged_df.write_csv("data/merged_brewery_census.csv")
     return merged_df

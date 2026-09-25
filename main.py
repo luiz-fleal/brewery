@@ -2,7 +2,11 @@ import argparse
 import logging
 import sys
 
-from analysis import create_brewery_dataframe, create_census_dataframe
+from analysis import (
+    create_brewery_dataframe,
+    create_census_dataframe,
+    merge_brewery_and_census_data,
+)
 from client import APIClient
 from config import BASE_URL
 from fetch_brewery import fetch_all
@@ -17,8 +21,8 @@ def main(args: argparse.Namespace) -> None:
         data = fetch_all(client=client, page_size=args.page_size)
         brewery_df = create_brewery_dataframe(data)
     census_df = create_census_dataframe("data/population_census.csv", year=args.year)
-    print(census_df)
-    print(brewery_df)
+    merged_df = merge_brewery_and_census_data(brewery_df, census_df)
+    print(merged_df)
 
 
 def run() -> int:
