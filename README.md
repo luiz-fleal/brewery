@@ -56,8 +56,9 @@ Because of this, the resulting density metrics aren't reliable enough to support
 
 Despite the data issues, the client layer responsible for fetching data from the Brewery API turned out solid:
 
-- **Robust retry logic:** requests handle failures on a case-by-case basis, with automatic retries and backoff (via Tenacity) tailored to the specific error encountered, rather than a one-size-fits-all retry policy.
+- **Robust retry logic:** requests handle failures on a case-by-case basis, such waiting 429 based on Retry-After, not retrying on request or intransient errors and waiting with exponential jitter on 500, 502, 503 and 504.
 - **Current limitation:** the client is currently synchronous due to pagination limitations of the API. Moving to an async implementation (HTTPX already supports it) would be a natural next step to improve throughput when paginating through large result sets.
+- **Logging:** request attempts, retries, and failures are logged, making it easier to trace what happened during a run and diagnose issues in the pipeline.
 
 # Frameworks and Packages
 
